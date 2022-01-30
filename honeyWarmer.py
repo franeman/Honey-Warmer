@@ -39,8 +39,10 @@ mqtt.publish("/debug", "Honey warmer connected!") # Publish connected message to
 GPIO.setmode(GPIO.BCM) # Use GPIO numbering scheme (use GPIO.BOARD for physical pin numbering)
 plate1 = 2 # Plate 1 is GPIO2 (physical pin 3)
 plate2 = 3 # Plate 2 is GPIO3 (physical pin 5)
+fan = 4 # Fan is GPIO4 (physical pin 7)
 GPIO.setup(plate1, GPIO.OUT, initial=GPIO.LOW) # Set plate1 as an output
 GPIO.setup(plate2, GPIO.OUT, initial=GPIO.LOW) # Set plate2 as an output
+GPIO.setup(fan, GPIO.OUT, initial=GPIO.LOW) # Set fan as an output
 
 # Configure DHT11
 dataPin = 26 # DHT11 data pin is connected to GPIO19 (physical pin 37)
@@ -51,6 +53,7 @@ tolerance = 5 # Allowable differnce from target temp
 error = 0 # Initial default error value
 twoPlateError = 10 # The temperature difference great enough to use 2 heat plates (degrees F)
 freq = 5 # Time between measurements
+fanOnTemp = 80 # Turn on the fan at 80 F
 
 # Begin main loop
 while (True): # Run forever
@@ -65,5 +68,9 @@ while (True): # Run forever
     else: # Temp is in tolerance, turn off the heaters
         GPIO.output(plate1, GPIO.LOW)
         GPIO.output(plate2, GPIO.LOW)
+    if (result.temperature >= fanOnTemp): # If the temp is above the fan turn on set point
+        GPIO.output(fan, GPIO.HIGH) 
+    else: # The fan is below the turn on set point
+        GPIO.output(fan, GPIO.LOW)
     sleep(freq) # Wait to take the next measurement
 
