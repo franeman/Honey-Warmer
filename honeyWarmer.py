@@ -29,6 +29,22 @@ def readDHT(dht, mqtt): # Reads from the DHT11 until it gets a valid read, then 
     mqtt.publish("/dht/humidity", result.humidity) # Publish humidity reading
     return result # Return the result
 
+class Hysteresis: # A class that defines a boolean value with hysteresis
+    def __init__(self, setPoint1, setPoint2, inverted=0):
+        self.setPoint1 = setPoint1 # The value needed to be passed in order to initially change the result
+        self.setPoint2 = setPoint2 # The value needed to fall below in order to change the result back
+        result = inverted
+        passedPoint1 = 0
+    
+    def testVal(self, val):
+        if (val >= setPoint1 and not passedPoint1): # Value is passing the first set point
+            result = not result
+            passedPoint1 = 1
+        elif (val <= setPoint2 and passedPoint1): # Value fell below the second set point
+            result = not result
+            passedPoint1 = 0
+        return result
+
 # Setup MQTT
 mqtt = paho.mqtt.client.Client() # Create a MQTT client object named mqtt
 mqtt.username_pw_set("testUser","testUser") # Set the username as testUser with password testUser to log into the MQTT server
@@ -51,15 +67,16 @@ tolerance = 5 # Allowable differnce from target temp
 error = 0 # Initial default error value
 twoPlateError = 10 # The temperature difference great enough to use 2 heat plates (degrees F)
 freq = 5 # Time between measurements
-
+runTwoPlates = Hysteresis(targetTemp-twoPlateError, targetTemp-twoPlateError-tolerance, 1)
+runOnePlate = Hysteresis(targetTemp, targetTemp-tolerance, 1)
 # Begin main loop
 while (True): # Run forever
     result = readDHT(dht11, mqtt) # Read the temp and humidity, publish reading to MQTT
-    error = targetTemp - convertCToF(result.temperature) # Calculate the temperature error in degrees F
-    if (error > twoPlateError): # If the temp needs to be raised quickly, run both heaters
+    temp = convertCToF(result.temperature) # Calculate the temperature in degrees F
+    if (runTwoPlates.testVal(temp): # If the temp needs to be raised quickly, run both heaters
         GPIO.output(plate1, GPIO.HIGH)
         GPIO.output(plate2, GPIO.HIGH)
-    elif (error > tolerance): # If the temp is not in tolerance but is close, run 1 heater 
+    elif (runOnePlate.testVal(temp): # If the temp is close, run 1 heater 
         GPIO.output(plate1, GPIO.HIGH)
         GPIO.output(plate2, GPIO.LOW)
     else: # Temp is in tolerance, turn off the heaters
