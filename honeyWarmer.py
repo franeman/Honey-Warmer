@@ -2,6 +2,7 @@
 
 # Import needed libraries
 from time import sleep # Get the sleep command from the time library
+from time import time # Get the time function from the time library
 import RPi.GPIO as GPIO # Import the RPi.GPIO library for interfacing with GPIO
 import dht11 # Import the library to interface with the dht11
 import paho.mqtt.client # Import the client mqtt library in paho
@@ -21,13 +22,26 @@ def readDHT(dht): # Reads from the DHT11 until it gets a valid read
     
 def readDHT(dht, mqtt): # Reads from the DHT11 until it gets a valid read, then publishes reading to MQTT
     result = dht.read() # Read from the DHT11
-    while (result.error_code != 0): # If there is an error, repeat every second until there is no error
-        sleep(1)
-        result = dht.read()
-    temp = convertCToF(result.temperature) # Convert to F
-    mqtt.publish("/dht/temp", temp) # Publish temperature reading in F
-    mqtt.publish("/dht/humidity", result.humidity) # Publish humidity reading
-    return result # Return the result
+    timeoutTime = time() + 60*10 # The time value for 10 minutes since the first attempt of reading
+    try:
+        while (result.error_code != 0): # If there is an error, repeat every second until there is no error 
+            if (time() > timeoutTime):
+                raise TimeoutError('Too long since a valid temperature read!')
+            sleep(1)
+            result = dht.read()
+        temp = convertCToF(result.temperature) # Convert to F
+        mqtt.publish("/dht/temp", temp) # Publish temperature reading in F
+        mqtt.publish("/dht/humidity", result.humidity) # Publish humidity reading
+        return result # Return the result
+    finally:
+        timeout()
+
+def timeout(): # Shuts down honey warmer in case of a temperature timeout
+    GPIO.output(plate1, GPIO.LOW)
+    GPIO.output(plate2, GPIO.LOW)
+    mqtt.publish("/debug", "ERROR: Temperature timeout! Shutting down!")
+    while True:
+        # Loop forever (Fix issue and restart the system)
 
 # Setup MQTT
 mqtt = paho.mqtt.client.Client() # Create a MQTT client object named mqtt
