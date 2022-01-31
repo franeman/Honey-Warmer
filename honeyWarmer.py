@@ -45,7 +45,7 @@ GPIO.setup(plate2, GPIO.OUT, initial=GPIO.LOW) # Set plate2 as an output
 GPIO.setup(fan, GPIO.OUT, initial=GPIO.LOW) # Set fan as an output
 
 # Configure DHT11
-dataPin = 19 # DHT11 data pin is connected to GPIO19 (physical pin 37)
+dataPin = 19 # DHT11 data pin is connected to GPIO19 (physical pin 35)
 dht11 = dht11.DHT11(dataPin) # Create an instance of the DHT11 class called dht11 who's signal pin is dataPin
 
 targetTemp = 105 # Target temp to keep the honey at in F
