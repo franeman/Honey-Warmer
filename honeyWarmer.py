@@ -41,7 +41,7 @@ def timeout(): # Shuts down honey warmer in case of a temperature timeout
     GPIO.output(plate2, GPIO.LOW)
     mqtt.publish("/debug", "ERROR: Temperature timeout! Shutting down!")
     while True:
-        # Loop forever (Fix issue and restart the system)
+        pass # Loop forever (Fix issue and restart the system)
 
 # Setup MQTT
 mqtt = paho.mqtt.client.Client() # Create a MQTT client object named mqtt
