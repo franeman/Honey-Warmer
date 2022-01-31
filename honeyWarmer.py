@@ -37,9 +37,9 @@ mqtt.publish("/debug", "Honey warmer connected!") # Publish connected message to
 
 # Configure GPIO
 GPIO.setmode(GPIO.BCM) # Use GPIO numbering scheme (use GPIO.BOARD for physical pin numbering)
-plate1 = 4 # Plate 1 is GPIO4 (physical pin 7)
-plate2 = 22 # Plate 2 is GPIO22 (physical pin 15)
-fan = 6 # Fan is GPIO6 (physical pin 7)
+plate1 = 6 # Plate 1 is GPIO6 (physical pin 31) Relay J4
+plate2 = 26 # Plate 2 is GPIO26 (physical pin 37) Relay J5
+fan = 22 # Fan is GPIO22 (physical pin 15) Relay J3
 GPIO.setup(plate1, GPIO.OUT, initial=GPIO.LOW) # Set plate1 as an output
 GPIO.setup(plate2, GPIO.OUT, initial=GPIO.LOW) # Set plate2 as an output
 GPIO.setup(fan, GPIO.OUT, initial=GPIO.LOW) # Set fan as an output
