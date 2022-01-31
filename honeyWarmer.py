@@ -37,15 +37,15 @@ mqtt.publish("/debug", "Honey warmer connected!") # Publish connected message to
 
 # Configure GPIO
 GPIO.setmode(GPIO.BCM) # Use GPIO numbering scheme (use GPIO.BOARD for physical pin numbering)
-plate1 = 2 # Plate 1 is GPIO2 (physical pin 3)
-plate2 = 3 # Plate 2 is GPIO3 (physical pin 5)
-fan = 4 # Fan is GPIO4 (physical pin 7)
+plate1 = 4 # Plate 1 is GPIO4 (physical pin 7)
+plate2 = 22 # Plate 2 is GPIO22 (physical pin 15)
+fan = 6 # Fan is GPIO6 (physical pin 7)
 GPIO.setup(plate1, GPIO.OUT, initial=GPIO.LOW) # Set plate1 as an output
 GPIO.setup(plate2, GPIO.OUT, initial=GPIO.LOW) # Set plate2 as an output
 GPIO.setup(fan, GPIO.OUT, initial=GPIO.LOW) # Set fan as an output
 
 # Configure DHT11
-dataPin = 26 # DHT11 data pin is connected to GPIO19 (physical pin 37)
+dataPin = 19 # DHT11 data pin is connected to GPIO19 (physical pin 37)
 dht11 = dht11.DHT11(dataPin) # Create an instance of the DHT11 class called dht11 who's signal pin is dataPin
 
 targetTemp = 105 # Target temp to keep the honey at in F
