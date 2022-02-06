@@ -88,9 +88,10 @@ error = 0 # Initial default error value
 twoPlateError = 10 # The temperature difference great enough to use 2 heat plates (degrees F)
 freq = 5 # Time between measurements
 
+fanOnTemp = 80 # Turn on the fan at 80 F
 runTwoPlates = Hysteresis(targetTemp-twoPlateError, targetTemp-twoPlateError-tolerance, 1)
 runOnePlate = Hysteresis(targetTemp, targetTemp-tolerance, 1)
-fanOnTemp = 80 # Turn on the fan at 80 F
+runFan = Hysteresis(fanOnTemp, fanOnTemp - tolerance)
 
 # Begin main loop
 try:
@@ -106,7 +107,7 @@ try:
         else: # Temp is in tolerance, turn off the heaters
             GPIO.output(plate1, GPIO.LOW)
             GPIO.output(plate2, GPIO.LOW)
-        if (convertCToF(result.temperature) >= fanOnTemp): # If the temp is above the fan turn on set point
+        if (runFan.testVal(temp)): # If the temp is above the fan turn on set point
             GPIO.output(fan, GPIO.HIGH) 
         else: # The fan is below the turn on set point
             GPIO.output(fan, GPIO.LOW)
