@@ -32,9 +32,9 @@ def readDHT(dht, mqtt): # Reads from the DHT11 until it gets a valid read, then 
             sleep(1)
             numErrors = numErrors + 1
             result = dht.read()
-        temp = convertCToF(result.temperature) # Convert to F
+        temp = round(convertCToF(result.temperature),1) # Convert to F
         mqtt.publish("/dht/temp", temp) # Publish temperature reading in F
-        mqtt.publish("/dht/humidity", result.humidity) # Publish humidity reading
+        mqtt.publish("/dht/humidity", round(result.humidity,1)) # Publish humidity reading
         return result # Return the result
     except TimeoutError:
         timeout()
@@ -93,22 +93,23 @@ runOnePlate = Hysteresis(targetTemp, targetTemp-tolerance, 1)
 fanOnTemp = 80 # Turn on the fan at 80 F
 
 # Begin main loop
-sleep(5)
-while (True): # Run forever
-    result = readDHT(dht11, mqtt) # Read the temp and humidity, publish reading to MQTT
-    temp = convertCToF(result.temperature) # Calculate the temperature in degrees F
-    if (runTwoPlates.testVal(temp)): # If the temp needs to be raised quickly, run both heaters
-        GPIO.output(plate1, GPIO.HIGH)
-        GPIO.output(plate2, GPIO.HIGH)
-    elif (runOnePlate.testVal(temp)): # If the temp is close, run 1 heater 
-        GPIO.output(plate1, GPIO.HIGH)
-        GPIO.output(plate2, GPIO.LOW)
-    else: # Temp is in tolerance, turn off the heaters
-        GPIO.output(plate1, GPIO.LOW)
-        GPIO.output(plate2, GPIO.LOW)
-    if (convertCToF(result.temperature) >= fanOnTemp): # If the temp is above the fan turn on set point
-        GPIO.output(fan, GPIO.HIGH) 
-    else: # The fan is below the turn on set point
-        GPIO.output(fan, GPIO.LOW)
-    sleep(freq) # Wait to take the next measurement
-
+try:
+    while (True): # Run forever
+        result = readDHT(dht11, mqtt) # Read the temp and humidity, publish reading to MQTT
+        temp = convertCToF(result.temperature) # Calculate the temperature in degrees F
+        if (runTwoPlates.testVal(temp)): # If the temp needs to be raised quickly, run both heaters
+            GPIO.output(plate1, GPIO.HIGH)
+            GPIO.output(plate2, GPIO.HIGH)
+        elif (runOnePlate.testVal(temp)): # If the temp is close, run 1 heater 
+            GPIO.output(plate1, GPIO.HIGH)
+            GPIO.output(plate2, GPIO.LOW)
+        else: # Temp is in tolerance, turn off the heaters
+            GPIO.output(plate1, GPIO.LOW)
+            GPIO.output(plate2, GPIO.LOW)
+        if (convertCToF(result.temperature) >= fanOnTemp): # If the temp is above the fan turn on set point
+            GPIO.output(fan, GPIO.HIGH) 
+        else: # The fan is below the turn on set point
+            GPIO.output(fan, GPIO.LOW)
+        sleep(freq) # Wait to take the next measurement
+finally:
+    GPIO.cleanup()
