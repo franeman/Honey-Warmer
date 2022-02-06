@@ -22,18 +22,21 @@ def readDHT(dht): # Reads from the DHT11 until it gets a valid read
     
 def readDHT(dht, mqtt): # Reads from the DHT11 until it gets a valid read, then publishes reading to MQTT
     result = dht.read() # Read from the DHT11
-    timeoutTime = time() + 60*10 # The time value for 10 minutes since the first attempt of reading
+    print("Initial Error code: " + str(result.error_code))
     try:
+        numErrors = 0
         while (result.error_code != 0): # If there is an error, repeat every second until there is no error 
-            if (time() > timeoutTime):
+            print("Error code: " + str(result.error_code))
+            if (numErrors > 300):
                 raise TimeoutError('Too long since a valid temperature read!')
             sleep(1)
+            numErrors = numErrors + 1
             result = dht.read()
         temp = convertCToF(result.temperature) # Convert to F
         mqtt.publish("/dht/temp", temp) # Publish temperature reading in F
         mqtt.publish("/dht/humidity", result.humidity) # Publish humidity reading
         return result # Return the result
-    finally:
+    except TimeoutError:
         timeout()
 
 def timeout(): # Shuts down honey warmer in case of a temperature timeout
@@ -67,6 +70,7 @@ twoPlateError = 10 # The temperature difference great enough to use 2 heat plate
 freq = 5 # Time between measurements
 
 # Begin main loop
+sleep(5)
 while (True): # Run forever
     result = readDHT(dht11, mqtt) # Read the temp and humidity, publish reading to MQTT
     error = targetTemp - convertCToF(result.temperature) # Calculate the temperature error in degrees F
