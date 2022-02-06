@@ -68,7 +68,7 @@ while (True): # Run forever
     else: # Temp is in tolerance, turn off the heaters
         GPIO.output(plate1, GPIO.LOW)
         GPIO.output(plate2, GPIO.LOW)
-    if (result.temperature >= fanOnTemp): # If the temp is above the fan turn on set point
+    if (convertCToF(result.temperature) >= fanOnTemp): # If the temp is above the fan turn on set point
         GPIO.output(fan, GPIO.HIGH) 
     else: # The fan is below the turn on set point
         GPIO.output(fan, GPIO.LOW)
